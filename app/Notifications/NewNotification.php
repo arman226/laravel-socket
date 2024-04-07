@@ -4,47 +4,62 @@ namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Notifications\Messages\BroadcastMessage;
+
 
 class NewNotification extends Notification
 {
     use Queueable;
-
+    protected $user_id;
+    protected $msg;
     /**
      * Create a new notification instance.
+     *
+     * @return void
      */
-    public function __construct()
+    public function __construct($user_id,$msg)
     {
-        //
+        $this->user_id = $user_id;
+        $this->msg = $msg;
     }
 
     /**
      * Get the notification's delivery channels.
      *
-     * @return array<int, string>
+     * @param  mixed  $notifiable
+     * @return array
      */
-    public function via(object $notifiable): array
+    public function via($notifiable)
     {
-        return ['broadcast'];
+        return ['database','broadcast'];
     }
 
-    public function toBroadcast($notifiable)
-    {
-        return new BroadcastMessage([
-            'message' => 'This is a real-time notification!',
-        ]);
-    }
+    
+
     /**
      * Get the array representation of the notification.
      *
-     * @return array<string, mixed>
+     * @param  mixed  $notifiable
+     * @return array
      */
-    public function toArray(object $notifiable): array
+    public function toArray($notifiable)
     {
         return [
-            //
+            'comment'=>$this->msg,
+            'user_id'=>$this->user_id
         ];
+    }
+    public function toBroadcast($notifiable)
+    {
+
+        return new BroadcastMessage([
+            'comment'=>$this->msg,
+            'user_id'=>$this->user_id
+        ]);
+    }
+    public function broadcastOn(){
+        return ['my-channel'];
     }
 }
